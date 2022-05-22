@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const { authMiddleware } = require('./utils/auth')
 //  import apollo server 
 const { ApolloServer } = require('apollo-server-express');
@@ -31,6 +32,23 @@ const startApolloServer = async (typeDefs, resolvers) => {
   // this creates a special /graphql endpoint for the express.js server that will
   // server as the main endpoint for accessing the entire API [w built in test tool]
   server.applyMiddleware({ app });
+
+ // ===== For Production Only: 
+  // Serve up static assets when in production
+  if (process.env.NODE_ENV === 'production') {
+    // if node environments is in production, tell express.js server to serve
+    // any files in the React application's build directory in the client folder.
+    app.use(express.static(path.join(__dirname, '../client/build')));
+    // build files do not contain dev dependencies 
+  }
+
+  // if user makes a get request to any location that doesnt have a specific route, respond with production ready
+  // React front end code
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  })
+ // ======  End =======
+
 
   // access database from Apollo server
   db.once('open', () => {
