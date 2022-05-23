@@ -56,3 +56,47 @@ export const QUERY_USER = gql`
         }
     }
 `;
+
+// different syntax. There are no variables being passed in, so we can simply name the query and graphql will handle the rest
+export const QUERY_ME = gql`
+    {
+        me {
+            _id
+            username
+            email
+            friendCount
+            thoughts {
+                _id
+                thoughtText
+                createdAt
+                reactionCount
+                reactions {
+                _id
+                createdAt
+                reactionBody
+                username
+                }
+            }
+            friends {
+                _id
+                username
+            }
+        }
+    }
+`;
+
+
+export const QUERY_ME_BASIC = gql`
+    {
+        me {
+            _id
+            username
+            email
+            friendCount
+            friends {
+                _id
+                username
+            }
+        }
+    }
+`;

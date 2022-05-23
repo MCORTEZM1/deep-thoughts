@@ -1,5 +1,6 @@
 import React from 'react';
 import { ApolloProvider, ApolloClient, InMemoryCache, createHttpLink } from '@apollo/client';
+import { setContext } from '@apollo/client/link/context';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 import Header from './components/Header';
@@ -19,10 +20,28 @@ const httpLink = createHttpLink({
   uri:'/graphql',
 });
 
+// create middleware function that will retrieve token and combine it with the httplink above
+// `_` serves as placeholder to access second parameter for setContext
+const authLink = setContext((_, { headers }) => {
+  const token = localStorage.getItem('id_token');
+
+  // retrieve token from local storage and set HTTP request headers of every request to include the token
+  // whether it needs it or not. This is fine since if the request doesnt need the token, our server's resolver wont check for it.
+  return {
+    headers: {
+      ...headers,
+      authorization: token ? `Bearer ${token}` : '',
+    },
+  }
+})
+
+
 // use ApolloClient constructor to instantiate teh apollo client instance and create the connection
 // to the API endpoint. We also instantiate a new cache for efficient API requests.
 const client = new ApolloClient({
-  link: httpLink,
+  // we need to combine authlink and httplink objects so that every request retrieves the token and
+  // sets the request headers before making the request to the API
+  link: authLink.concat(httpLink),
   cache: new InMemoryCache(),
 })
 
@@ -54,7 +73,12 @@ function App() {
                 element={<Signup />}
               />
               <Route 
-                path='/profile/:username'
+                path= "/profile"
+                element={<Profile />}
+              />
+              {/* had to include this route since it doesnt handle "path= `/profile/:username?`" */}
+              <Route 
+                path= '/profile/:username' 
                 element={<Profile />}
               />
               <Route 
@@ -62,7 +86,7 @@ function App() {
                 element={<SingleThought />}
               />
               <Route 
-                path='*'
+                path='/*'
                 element={<NoMatch />}
               />
             </Routes>
