@@ -40,7 +40,7 @@ const typeDefs = gql`
         users: [User]
         user(username: String!): User
         thoughts(username: String): [Thought]
-        thought(_id: ID): Thought
+        thought(_id: ID!): Thought
     }    
 
     type Mutation {
